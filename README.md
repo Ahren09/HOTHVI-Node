@@ -21,7 +21,7 @@
 
 ## Note
 
-Many of you are probably attending this workshop because you'd like to learn how to incorporate a database into your hackathon project. Because of this, I've geared the workshop more toward practical topics, mainly setup and usage in projects. There are a lot of other topics that we will not have time to cover, so feel free to ask mentors or any of the ACM staff if you have any tangential questions and we'll be free to help!
+Many of you are probably attending this workshop because you'd like to learn how to incorporate a database into your HOTH project. Because of this, I've geared the workshop more toward practical topics, mainly setup and usage in projects. There are a lot of other topics that we will not have time to cover, so feel free to ask mentors or any of the ACM staff if you have any related questions and we'll be free to help!
 
 ## What is a database?
 
@@ -29,9 +29,7 @@ A database is a system that stores application data in an organized fashion. A d
 
 ## Why are they important?
 
-So far, the applications we've written either get data from an API and do some kind of operation with it (display it on a page, use it to perform a calculation on the server, etc.) or write our manually-inputted data into a temporary array or object. The backend code for these types of applications is generally not too difficult to manage, as we only need to deal with routing and each route can have its own object or array that it uses to manage its data.
-
-Consider an app like a Todo List. In this app we can add new tasks and cross off tasks that we've already completed. Using what you've learned so far, you can build something like this! BUT, there is one big issue. Let's say I've added a few tasks and marked some of them as completed. If I close this application and start it again, my Todo List will have no items!
+Consider an app like a Todo List. In this app we can add new tasks and cross off tasks that we've already completed. Using just plain HTML, CSS, and some JavaScript, you can build something like this! BUT, there is one big issue. Let's say I've added a few tasks and marked some of them as completed. If I close this application and start it again, my Todo List will have no items just as in the beginning!
 
 Databases are very important to us because they give us the power of persistent storage to our applications.
 
@@ -39,48 +37,67 @@ If the tasks of a Todo List are stored in a database instead of an array managin
 
 ## How can I use a database in my own applications?
 
-Most database systems can be installed by simply going to a website and "downloading" (i.e. like most other software, and like the way we installed Node.js during previous workshops). Likewise, they usually have a terminal / console window that can be used to interact with the database using special commands. Using these types of databases, the application data that we save is stored on our own computers.
+Most database systems can be installed by simply going to a website and "downloading" (i.e. like most other software, and like the way we installed Node.js). Likewise, they usually have a terminal / console window that can be used to interact with the database using special commands. Using these types of databases, the application data that we save is stored on our own computers.
 
 However, today we'll be using a database that's a little different: Firebase.
 
-Firebase is a "cloud platform", which means that it provides many services online rather than having to download them on to our computer to use locally. Our data in the Firebase database will be stored online, i.e. "on the cloud". This means that the database and all of our data inside it will be living online on a different computer. In the next steps, we'll learn how to use Firebase for the blog app we'll be making!
+Firebase is a "cloud platform", which means that it provides many services online rather than making the user download them onto a computer for local use. Our data in the Firebase database will be stored online, i.e. "on the cloud". This means that the database and all of our data inside it will be living online on a different computer. In the next steps, we'll learn how to use Firebase to store tweets!
 
+## Initial Project Setup
 
-## Blog App Backend
+First, if you attended the previous workshop and finished a working version of the demo, you may skip the remaining steps in this portion.
 
-First, you'll want to download the backend template project for the blog app. If you are viewing this README on GitHub, just scroll to the top of the page and click the green button. You will have the option of using `git clone` or downloading the folder as a zip file.
+Otherwise, you'll want to download the starter code for this project. If you are viewing this tutorial on GitHub, just scroll to the top of the page and click the green button. You will have the option of using `git clone` or downloading the folder as a zip file.
+
+Once you have obtained the necessary files, you will have to download Node.js. Then, open the project folder in your terminal and, in the same directory level as the folders `public`, `src`, `package.json`, etc. run `npm install` to install all of the necessary dependencies for this project. Finally, run `npm start` which will open a new tab on your default browser. Use this to test and make sure the basic version of the app works for you.
 
 ## Set up the Firebase Account
 
 Since Firebase is an online platform, we'll need to make an account through Google to be able to connect our application to the online database we make. Please follow these steps:
 
-1. Go to the [Firebase website](https://firebase.google.com/)
-2. Make a Google account if you do not already have one, otherwise sign in with your account
-3. Click "Go To Console" on the home page
-4. Create a new project by clicking "Add project"
+1. Go to the [Firebase website](https://firebase.google.com/).
+2. Make a Google account if you do not already have one, otherwise sign in with your account.
+3. Click "Go To Console" on the home page.
+4. Create a new project by clicking "Add project". Use the title 'HOTH 6 Firebase Demo' or similar, accept the terms, and create project.
+5. Keep this tab open, we will come back to it later.
+
 5. In your new project, click the gear symbol next to "Project Overview" and click "Project settings"
 6. There should be a row of tabs at the top of the page, please click on "Service accounts"
 7. On this page, click on "Generate new private key" on the bottom of the page; this will download a file with information that will help our blog application connect to our online Firebase database. Rename this file to "firebase-key.json" and save it in the blog template folder you downloaded in the previous step.
 8. Finally, click on the "Database" section from the sidebar on the left
 9. Here, make sure that the dropdown next to the "Database" header on the page is set to "Cloud Firestore" rather than "Realtime Database"
 
-Now, if you look at the file we just downloaded, you'll notice that it contains many pieces of identification and administration information in one big JSON object. Firebase has taken care of generating all of this for us, and don't worry if you don't understand what each field means - our application code will make it easy for us to use this information to connect to the database.
-
 ## Integrating Firebase in our Application Code
 
-First, make sure we have all of our project dependencies locally by running `npm install` in the backend-template folder. Then, within this folder, find the "database" folder and open up the `index.js` file. All of the code we'll write today will be in this file.
+All of the code written in this workshop will be done in two files: `App.js` and `database.js`. Create the new `database.js` file under the `src` directory and open it up on your favorite text editor.
 
-At the top of the file, we'll need to tell our application that we have administrator access to a Firebase database. We can do this by showing our application proof - the `firebase-key.json` file.
+First, we need to include a way for us to use Firebase code:
+```javascript
+const firebase = require("firebase/app");
+require('@firebase/database');
+```
+Note that while we've required these dependencies, we haven't actually downloaded any of the firebase code we wish to use. To do this, run `npm install --save firebase` in your console.
+
+Next, we need to include JavaScript code that connects our project to our online database. Let's continue the steps we followed on our account:
+
+6. Click on `Database` under the `Develop` section on the left.
+7. Scroll down to `Realtime Database` and click on `Create database`.
+8. Select the `Start in Test Mode` option and continue. If you are not sure you've done this correctly, just make sure that under the `Rules` tab you have the following:
 
 ```javascript
-const admin = require('firebase-admin');
-const { FieldValue } = admin.firestore;
-
-admin.initializeApp({
-	credential: admin.credential.cert(require('../firebase-key.json')),
-});
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
 ```
-Next, we need to create a variable that has access to the actual database that we've created. Then, we'd like to create a collection called "posts" in the database.
+9. Now, click on `Authentication` under the `Develop section on the left.
+10. On the top right, click on `Web setup`.
+11. Copy the code from `//Initialize Firebase` to `firebase.initializeApp(config)` (both lines included).
+
+After following these steps, we've done everything we need to setup Firebase for usage in our web app! Now we can learn how to use the firebase for storing information.
+
 
 ``` javascript
 const db = admin.firestore();

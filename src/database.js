@@ -21,12 +21,9 @@ function saveTweet(curTweet, likes){
 }
 
 function updateLikes(tweetContent, newLikeCount){
-  console.log('going into update!!!');
-  console.log("tweetContent: " + tweetContent);
-  console.log("newLikeCount: " + newLikeCount);
   let query = database.ref('tweets').orderByChild('tweetText').equalTo(tweetContent);
   query.once("child_added", function(snapshot){
-    snapshot.ref.update({numLikes: newLikeCount});
+    snapshot.ref.update({numLikes: newLikeCount + 1});
   });
 }
 

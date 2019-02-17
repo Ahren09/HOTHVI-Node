@@ -18,9 +18,6 @@ class Tweet extends React.Component {
     };
 
     // search up tweet by content, then update the like count
-    // console.log('trying to update tweets');
-    // console.log(this.props.tweet);
-    // console.log(this.state.numLike);
     updateLikes(this.props.tweet, this.state.numLike);
 
     this.setState(newState);
