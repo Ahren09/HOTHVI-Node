@@ -17,7 +17,7 @@ function saveTweet(curTweet, likes){
   database.ref('tweets').push({
     tweetText: curTweet,
     numLikes: likes
-  })
+  });
 }
 
 function updateLikes(tweetContent, newLikeCount){

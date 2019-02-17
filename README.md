@@ -91,11 +91,11 @@ Next, we need to include JavaScript code that connects our project to our online
 11. Copy the code from `//Initialize Firebase` to `firebase.initializeApp(config)` (both lines included).
 12. Paste these lines after the previous code we wrote in `database.js`.
 
-After following these steps, we've done everything we need to setup Firebase for usage in our web app! Now we can learn how to use the firebase for storing information.
+After following these steps, we've done everything we need to setup Firebase for usage in our web app! Now we can learn how to store information.
 
 ## Another Note
 
-On top of being quick to set up, Firebase is supported by very thorough and readable documentation. For instance, every firebase-related thing I've explained so far can be found in the Firebase documentation on a single page [here](https://firebase.google.com/docs/admin/setup). There are many Firebase details, and I may not be able to cover them all in the time that we have. For anything you are not clear about, please read the documentation as it should be able to solve most of your issues.
+On top of being quick to set up, Firebase is supported by very thorough and readable documentation. For instance, almost everything I will talk about in this workshop can be found in the Firebase documentation on a single page [here](https://firebase.google.com/docs/database/web/read-and-write). There are many Firebase details, and I may not be able to cover them all in the time that we have. For anything you are not clear about, please read the documentation as it should be able to solve most of your issues.
 
 ## Writing Database Code
 
@@ -117,7 +117,7 @@ function saveTweet(curTweet, likes){
   database.ref('tweets').push({
     tweetText: curTweet,
     numLikes: likes
-  })
+  });
 }
 ```
 
@@ -135,7 +135,7 @@ Next, make sure to include this in `App.js` by writing the following under the R
 const { saveTweet } = require('./database.js');
 ```
 
-While we've implemented `saveTweet`, it's not called anywhere! Open `App.js` and call our new function in the corresponding TODO block; it should look like this:
+While we've implemented `saveTweet`, it's not called anywhere! Call our new function in the corresponding TODO block in `App.js`; it should look like this:
 
 ```javascript
 saveTweet(currTweetObj.content, 0);
@@ -157,7 +157,7 @@ function updateLikes(tweetContent, newLikeCount){
 }
 ```
 
-This function looks more complicated than the last, but there's a reason for it. When we want to update the number of likes in our database, we don't have an easy way of determining which tweet the current number of likes belongs too. So, we have to write a query to lookup the tweet we want in our database based on the text of the tweet we wish to update. Then, we go ahead and increment its number of likes everytime the user presses the corresponding button. This syntax seems to include a lot of things we haven't seen before, but a quick look through Google's documentation on Firebase should help you familiarize yourself with what keywords such as `snapshot`, `orderByChild`, etc. mean. If you have specific questions, feel free to anytime!
+This function looks more complicated than the last, but there's a reason for it. When we want to update the number of likes in our database, we don't have an easy way of determining which tweet the current number of likes belongs too. So, we have to write a query to lookup the tweet we want in our database based on the text of the tweet we wish to update. Then, we go ahead and increment its number of likes everytime the user presses the corresponding button. This syntax seems to include a lot of things we haven't seen before, but a quick look through Google's documentation on Firebase should help you familiarize yourself with what keywords such as `snapshot`, `orderByChild`, etc. mean. If you have specific questions, feel free to ask anytime!
 
 To test and use this function, we have just a few more steps left.
 
@@ -173,4 +173,6 @@ And that's it! After these changes, you should now be able to see a given tweet'
 
 1. We update the number of likes by looking up a tweet based on its text content; this will fail if tweets have identical text content. The best way to fix this is to save another value for each tweet, a tweetIndex, which is unique for every tweet and can be used to search. Alternatively, you can look into Firebase's built-in indexing which will do this for you more smoothly; consult the documentation or ask after the presentation for help with this.
 
-2. 
+2. Google has recently changed Firebase's flagship storage model to Cloud Firestore. This is generally a preferred alternative to the Realtime Database option we have used in this workshop. If you are looking to use Firebase outside the scope of this hackathon, you may want to checkout how to set it up [here](https://firebase.google.com/docs/admin/setup).
+
+Thanks for coming out to the workshop!
