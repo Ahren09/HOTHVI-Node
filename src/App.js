@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-const { saveTweet, updateLikes } = require('./database.js');
+// TODO: use exported functions
 
 class Tweet extends React.Component {
   constructor() {
@@ -17,8 +17,7 @@ class Tweet extends React.Component {
       numLike: previousLike + 1
     };
 
-    // search up tweet by content, then update the like count
-    updateLikes(this.props.tweet, this.state.numLike);
+    // TODO: search up tweet by content, then update the like count
 
     this.setState(newState);
   }
@@ -67,8 +66,7 @@ class App extends Component {
       content: this.state.currTweet
     };
 
-    // push new tweet to database
-    saveTweet(currTweetObj.content, 0);
+    // TODO: push new tweet to database
 
     this.tweetIndex += 1;
 
