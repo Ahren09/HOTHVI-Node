@@ -61,12 +61,6 @@ Since Firebase is an online platform, we'll need to make an account through Goog
 4. Create a new project by clicking "Add project". Use the title 'HOTH 6 Firebase Demo' or similar, accept the terms, and create project.
 5. Keep this tab open, we will come back to it later.
 
-5. In your new project, click the gear symbol next to "Project Overview" and click "Project settings"
-6. There should be a row of tabs at the top of the page, please click on "Service accounts"
-7. On this page, click on "Generate new private key" on the bottom of the page; this will download a file with information that will help our blog application connect to our online Firebase database. Rename this file to "firebase-key.json" and save it in the blog template folder you downloaded in the previous step.
-8. Finally, click on the "Database" section from the sidebar on the left
-9. Here, make sure that the dropdown next to the "Database" header on the page is set to "Cloud Firestore" rather than "Realtime Database"
-
 ## Integrating Firebase in our Application Code
 
 All of the code written in this workshop will be done in two files: `App.js` and `database.js`. Create the new `database.js` file under the `src` directory and open it up on your favorite text editor.
@@ -76,7 +70,7 @@ First, we need to include a way for us to use Firebase code:
 const firebase = require("firebase/app");
 require('@firebase/database');
 ```
-Note that while we've required these dependencies, we haven't actually downloaded any of the firebase code we wish to use. To do this, run `npm install --save firebase` in your console.
+Note that while we've required these dependencies, we haven't actually downloaded any of the firebase code we wish to use. To do this, run `npm install --save firebase` in your console in the same directory level you ran the previous `npm install` command.
 
 Next, we need to include JavaScript code that connects our project to our online database. Let's continue the steps we followed on our account:
 
@@ -92,101 +86,91 @@ Next, we need to include JavaScript code that connects our project to our online
   }
 }
 ```
-9. Now, click on `Authentication` under the `Develop section on the left.
+9. Now, click on `Authentication` under the `Develop` section on the left.
 10. On the top right, click on `Web setup`.
 11. Copy the code from `//Initialize Firebase` to `firebase.initializeApp(config)` (both lines included).
+12. Paste these lines after the previous code we wrote in `database.js`.
 
 After following these steps, we've done everything we need to setup Firebase for usage in our web app! Now we can learn how to use the firebase for storing information.
 
+## Another Note
 
-``` javascript
-const db = admin.firestore();
-db.settings({ timestampsInSnapshots: true });
-
-const postsCollection = db.collection('posts');
-```
-
-**Aside**
-
-On top of being quick to set up, Firebase is supported by very thorough and readable documentation. For instance, almost everything I've explained so far can be found in the Firebase documentation on a single page [here](https://firebase.google.com/docs/admin/setup). There are many Firebase details, and I may not be able to cover them all in the time that we have. For anything you are not clear about, please read the documentation as it should be able to solve most of your issues.
-
-**End Aside**
-
-Remember that Firebase stores data objects as "documents" while we use javascript objects in the code that we write. To make sure we can use what Firebase gives us, we need to write a function to convert between data formats.
-
-``` javascript
-// Converts a Firebase document to a JavaScript object we could JSON-stringify.
-function docSnapshotToData(doc) {
-	const { title, body, creationTime } = doc.data();
-	return {
-		id: doc.id,
-		title,
-		body,
-		creationTime: creationTime.toMillis(),
-	};
-}
-```
+On top of being quick to set up, Firebase is supported by very thorough and readable documentation. For instance, every firebase-related thing I've explained so far can be found in the Firebase documentation on a single page [here](https://firebase.google.com/docs/admin/setup). There are many Firebase details, and I may not be able to cover them all in the time that we have. For anything you are not clear about, please read the documentation as it should be able to solve most of your issues.
 
 ## Writing Database Code
 
-Finally, we get to show interaction between data in our online database and code in our application. We can't have a blog without being able to write posts! Let's write a function to do this.
+Finally, we get to show interaction between data in our online database and code in our application. We'd like to be able to hold on to tweets for the future even after someone has closed our application. There are two main behaviors that we are interested in.
 
-``` javascript
-// post is an object with the following fields:
-// - title (string)
-// - body (string): body of the post in HTML
-async function addPost(post) {
-	const doc = await postsCollection.add({
-		title: post.title,
-		body: post.body,
-		creationTime: FieldValue.serverTimestamp(),
-	});
-	return doc.id;
-}
-```
-There's a few things to note here. Remember that we use async functions for operations that may take a long time. Writing to, deleting from, and updating a database takes time. This means that whenever we want to change the state of the database or ask it for some data, its best to write async functions. The `FieldValue` is used to keep track of when a post was created on the database, you can read more about it [here](https://firebase.google.com/docs/reference/js/firebase.firestore.FieldValue).
+1. Save a new tweet into the database corresponding to every time a user posts a new tweet on the app.
+2. Update an existing tweet's likes when a user likes a given tweet. 
 
-
-At this point, we've written the function that correctly adds a post to our Firebase database! There is one last step though. This function can only be used by backend code right now. If someone working on the frontend wants to allow a post to be added to the database if a user clicks on a button to do so, they have no way of accessing the behavior we just implemented! Let's create the route in our API that lets others do this.
+First, we need to create a database variable that we'll use to refer to our online database:
 
 ```javascript
-router.post('/', async (req, res, next) => {
-	try {
-		const id = await addPost(req.body);
-		res.end(id);
-	} catch (err) {
-		next(err);
-	}
-});
+let database = firebase.database();
 ```
 
-For an outside user of our backend code, this route says "if you make a post request to the `/` route on the backend, you'll add a post to the database".
+Let's write a function to implement the first behavior in `database.js`.
 
-With this implemented, let's start the blog app and see what we have so far. Please follow these steps:
-
-To start the backend,
-
-```shell
-cd backend
-npm install
-node index.js
-```
-Remember, `cd` should be `dir` in Windows CMD.
-
-To start the frontend,
-```shell
-cd ..
-cd frontend
-npm install
-npm start
+```javascript
+function saveTweet(curTweet, likes){
+  database.ref('tweets').push({
+    tweetText: curTweet,
+    numLikes: likes
+  })
+}
 ```
 
-You should be able to see app at localhost:3000
+While this isn't too much code, there are a few things happening here worth explaining. The first line creates a collection in our database named `tweets` if it does not already exist. Then, we use the `push` function since we are specifically adding a new document to this collection. In this case, the document is simply a tweet's text and number of likes, which are assigned using the parameters of the function.
 
-Let's try to COMPOSE a post on this page. After you've done so, what do you notice? We can't see the post! Let's head over to our Firebase console to see what's happening. Click on "Database" on the left sidebar. What do you notice now?
+At this point, we should test our current implementation before moving forward. Create an export object which looks like the following at the very end of `database.js`:
 
-You've learned how to save application data onto a database! Unfortunately, this is all we have time for today. Get started on the rest of the blog!!!
+```javascript
+module.exports = {
+  saveTweet,
+};
+```
+Next, make sure to include this in `App.js` by writing the following under the React import statement:
+```javascript
+const { saveTweet } = require('./database.js');
+```
 
-## Finishing the Blog App
+While we've implemented `saveTweet`, it's not called anywhere! Open `App.js` and call our new function in the corresponding TODO block; it should look like this:
 
-With the backend-template project we've been working on in today's workshop, all of the front end code has been provided to you. However, there are many gaps in the backend code that need to be completed. In the `index.js` file and the "routes" folder's `posts.js` file we've written many TODOs where code needs to be added. You'll have the next few weeks to fill out this code to get all of the features of the blog app working.
+```javascript
+saveTweet(currTweetObj.content, 0);
+```
+With this call, we make sure that every new tweet will be saved to the database with its given text and an initial like count of 0.
+
+Now, you should be able to start up the app, create a new tweet, and then see it saved on your firebase tab in real time! (This will be under `Database` in the `Develop` section on the left.)
+
+This is great and it means that we've done everything correctly so far. However, you'll notice that even when we click the like button, the UI is updated but the entry in our database is not. Remember that this is the second behavior that we wanted to implement, so let's go ahead and do that now.
+
+Go to `database.js` and add a new function:
+
+```javascript
+function updateLikes(tweetContent, newLikeCount){
+  let query = database.ref('tweets').orderByChild('tweetText').equalTo(tweetContent);
+  query.once("child_added", function(snapshot){
+    snapshot.ref.update({numLikes: newLikeCount + 1});
+  });
+}
+```
+
+This function looks more complicated than the last, but there's a reason for it. When we want to update the number of likes in our database, we don't have an easy way of determining which tweet the current number of likes belongs too. So, we have to write a query to lookup the tweet we want in our database based on the text of the tweet we wish to update. Then, we go ahead and increment its number of likes everytime the user presses the corresponding button. This syntax seems to include a lot of things we haven't seen before, but a quick look through Google's documentation on Firebase should help you familiarize yourself with what keywords such as `snapshot`, `orderByChild`, etc. mean. If you have specific questions, feel free to anytime!
+
+To test and use this function, we have just a few more steps left.
+
+1. Add `updateLikes` to the export object.
+2. Add `updateLikes` to the require statement in `App.js`.
+3. Call `updateLikes` in the corresponding TODO block:
+
+```javascript
+updateLikes(this.props.tweet, this.state.numLike);
+```
+
+And that's it! After these changes, you should now be able to see a given tweet's like count update in real time as well. If you have prior experience or have been paying attention carefully, you'll notice that there are some concerns that you may want to address depending on your use cases:
+
+1. We update the number of likes by looking up a tweet based on its text content; this will fail if tweets have identical text content. The best way to fix this is to save another value for each tweet, a tweetIndex, which is unique for every tweet and can be used to search. Alternatively, you can look into Firebase's built-in indexing which will do this for you more smoothly; consult the documentation or ask after the presentation for help with this.
+
+2. 
